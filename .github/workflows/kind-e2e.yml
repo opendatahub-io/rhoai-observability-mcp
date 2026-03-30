@@ -1,0 +1,114 @@
+name: Kind E2E
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "deploy/**"
+      - "hack/**"
+      - "Makefile"
+      - "Containerfile"
+      - ".github/workflows/kind-e2e.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "deploy/**"
+      - "hack/**"
+      - "Makefile"
+      - "Containerfile"
+      - ".github/workflows/kind-e2e.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kind-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Install kustomize
+        run: |
+          curl -sL "https://github.com/kubernetes-sigs/kustomize/releases/latest/download/kustomize_v5.6.0_linux_amd64.tar.gz" | \
+            tar xz -C /usr/local/bin
+          kustomize version
+
+      - name: Validate Kustomize overlays
+        run: |
+          kustomize build deploy/overlays/openshift > /dev/null
+          echo "OpenShift overlay: OK"
+          kustomize build deploy/overlays/kind > /dev/null
+          echo "Kind overlay: OK"
+
+      - name: Create Kind cluster
+        run: make kind-create
+
+      - name: Install mock backends
+        run: make kind-backends
+
+      - name: Build and deploy MCP server
+        run: make kind-deploy
+
+      - name: Wait for fake-vllm-exporter
+        run: kubectl wait --for=condition=ready pod -l app=fake-vllm-exporter --timeout=120s
+
+      - name: Wait for MCP server
+        run: kubectl wait --for=condition=ready pod -l app=rhoai-obs-mcp --timeout=120s
+
+      - name: Verify MCP server is reachable
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 http://localhost:30080/sse || true)
+          if [ "$HTTP_CODE" -gt 0 ] 2>/dev/null; then
+            echo "MCP server is reachable (HTTP $HTTP_CODE)"
+          else
+            echo "ERROR: MCP server is not reachable"
+            exit 1
+          fi
+
+      - name: Verify Prometheus scrapes fake exporter
+        run: |
+          kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090 &
+          PF_PID=$!
+          sleep 3
+
+          for i in $(seq 1 12); do
+            RESULT=$(curl -sf 'http://localhost:9090/api/v1/query?query=vllm:gpu_cache_usage_perc' 2>/dev/null)
+            if echo "$RESULT" | grep -q '"model_name"'; then
+              echo "Prometheus is scraping fake exporter metrics"
+              kill $PF_PID 2>/dev/null || true
+              exit 0
+            fi
+            echo "Attempt $i/12: metrics not yet available, waiting 10s..."
+            sleep 10
+          done
+
+          echo "ERROR: Prometheus did not scrape fake exporter within 2 minutes"
+          kill $PF_PID 2>/dev/null || true
+          exit 1
+
+      - name: Collect debug info on failure
+        if: failure()
+        run: |
+          echo "=== Pods ==="
+          kubectl get pods -A
+          echo ""
+          echo "=== MCP server logs ==="
+          kubectl logs -l app=rhoai-obs-mcp --tail=50 || true
+          echo ""
+          echo "=== Fake exporter logs ==="
+          kubectl logs -l app=fake-vllm-exporter --tail=50 || true
+          echo ""
+          echo "=== Prometheus targets ==="
+          kubectl port-forward -n monitoring svc/kube-prometheus-stack-prometheus 9090:9090 &
+          sleep 2
+          curl -sf 'http://localhost:9090/api/v1/targets' | python3 -m json.tool | head -100 || true
+
+      - name: Tear down
+        if: always()
+        run: make kind-down
