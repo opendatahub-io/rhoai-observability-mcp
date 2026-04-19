@@ -3,6 +3,7 @@ from rhoai_obs_mcp.server import create_server
 
 
 class TestServer:
+    @patch("rhoai_obs_mcp.server.TempoBackend")
     @patch("rhoai_obs_mcp.server.OpenShiftBackend")
     @patch("rhoai_obs_mcp.server.GrafanaBackend")
     @patch("rhoai_obs_mcp.server.LokiBackend")
@@ -18,12 +19,14 @@ class TestServer:
             "alertmanager_url": "https://am.test:9093",
             "loki_url": "https://loki.test:8080",
             "grafana_url": "https://grafana.test:3000",
+            "tempo_url": "https://tempo.test:8080",
             "openshift_token": "test-token",
         }
 
         server = create_server(settings_override)
         assert isinstance(server, FastMCP)
 
+    @patch("rhoai_obs_mcp.server.TempoBackend")
     @patch("rhoai_obs_mcp.server.OpenShiftBackend")
     @patch("rhoai_obs_mcp.server.GrafanaBackend")
     @patch("rhoai_obs_mcp.server.LokiBackend")
@@ -37,6 +40,7 @@ class TestServer:
             "alertmanager_url": "https://am.test:9093",
             "loki_url": "https://loki.test:8080",
             "grafana_url": "https://grafana.test:3000",
+            "tempo_url": "https://tempo.test:8080",
             "openshift_token": "test-token",
         }
 
