@@ -22,3 +22,5 @@ spec:
               value: "http://kube-prometheus-stack-alertmanager.monitoring.svc:9093"
             - name: GRAFANA_URL
               value: "http://kube-prometheus-stack-grafana.monitoring.svc:80"
+            # TEMPO_URL is not set by default — Tempo is not included in kube-prometheus-stack.
+            # Override at deploy time: make kind-deploy TEMPO_URL=http://tempo-gateway.tempo.svc:8080

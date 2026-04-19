@@ -10,7 +10,7 @@ An MCP (Model Context Protocol) server that gives AI assistants direct access to
 
 ## Features
 
-- **18 tools** across 6 categories for comprehensive observability
+- **21 tools** across 7 categories for comprehensive observability
 - **vLLM-aware** metrics (TTFT, TPOT, E2E latency, KV cache, queue depth)
 - **Composite investigation** tools that correlate metrics, logs, and alerts automatically
 - **Auto-detection** of in-cluster vs external access to OpenShift services
@@ -24,8 +24,9 @@ graph TD
     B --> C[Thanos / Prometheus]
     B --> D[Alertmanager]
     B --> E[Loki]
-    B --> F[Grafana]
-    B --> G[Kubernetes / OpenShift]
+    B --> F[Tempo]
+    B --> G[Grafana]
+    B --> H[Kubernetes / OpenShift]
 ```
 
 **Backends:**
@@ -35,6 +36,7 @@ graph TD
 | Prometheus (Thanos) | Metrics queries (PromQL) | `backends/prometheus.py` |
 | Alertmanager | Active alerts and alert groups | `backends/alertmanager.py` |
 | Loki | Log queries (LogQL) | `backends/loki.py` |
+| Tempo | Distributed trace queries (TraceQL) | `backends/tempo.py` |
 | Grafana | Dashboard discovery and panel queries | `backends/grafana.py` |
 | Kubernetes (OpenShift) | Pods, events, nodes, InferenceServices | `backends/openshift.py` |
 
@@ -131,7 +133,7 @@ This creates a Kind cluster, installs Prometheus + Alertmanager + Grafana via He
 To point at real external backends instead of the mocks:
 
 ```bash
-make kind-deploy THANOS_URL=https://real-cluster:9091 ALERTMANAGER_URL=https://real-cluster:9093 GRAFANA_URL=https://real-cluster:3000
+make kind-deploy THANOS_URL=https://real-cluster:9091 ALERTMANAGER_URL=https://real-cluster:9093 GRAFANA_URL=https://real-cluster:3000 TEMPO_URL=https://real-cluster:8080
 ```
 
 Tear down:
@@ -164,6 +166,14 @@ make kind-down
 |------|-------------|
 | `query_logs` | Execute a LogQL query against OpenShift LokiStack |
 | `get_pod_logs` | Get logs for a specific pod by namespace and name |
+
+### Traces
+
+| Tool | Description |
+|------|-------------|
+| `get_trace` | Fetch a distributed trace by its trace ID |
+| `search_traces` | Search for traces using TraceQL expressions |
+| `list_trace_tags` | List available trace tag names for building TraceQL queries |
 
 ### Cluster
 
