@@ -96,7 +96,9 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Fake vLLM metrics exporter")
     parser.add_argument("--port", type=int, default=8000, help="Port to serve metrics on")
-    parser.add_argument("--interval", type=float, default=5.0, help="Seconds between sample generation")
+    parser.add_argument(
+        "--interval", type=float, default=5.0, help="Seconds between sample generation"
+    )
     args = parser.parse_args()
 
     start_http_server(args.port)
