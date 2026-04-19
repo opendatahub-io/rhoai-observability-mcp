@@ -25,6 +25,7 @@ All settings are configured via environment variables or a `.env` file in the pr
 | `ALERTMANAGER_URL` | Alertmanager URL | Auto-detected via OpenShift route |
 | `LOKI_URL` | LokiStack gateway URL | Auto-detected via OpenShift route |
 | `GRAFANA_URL` | Grafana URL | Auto-detected via OpenShift route |
+| `TEMPO_URL` | Tempo gateway URL for distributed traces | Not auto-detected |
 | `OPENSHIFT_TOKEN` | Bearer token override | Auto-detected from service account or `oc whoami -t` |
 | `DEFAULT_TIME_RANGE` | Default PromQL/LogQL time range | `5m` |
 | `LOG_LEVEL` | Logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`) | `INFO` |
@@ -46,6 +47,7 @@ THANOS_URL=https://thanos-querier-openshift-monitoring.apps.mycluster.example.co
 ALERTMANAGER_URL=https://alertmanager-main-openshift-monitoring.apps.mycluster.example.com
 LOKI_URL=https://logging-loki-openshift-logging.apps.mycluster.example.com
 GRAFANA_URL=https://grafana-open-cluster-management-observability.apps.mycluster.example.com
+TEMPO_URL=https://tempo-data-science-tempostack-gateway.apps.mycluster.example.com
 OPENSHIFT_TOKEN=sha256~xxxxxxxxxxxxxxxxxxxx
 LOG_LEVEL=DEBUG
 ```
@@ -80,7 +82,7 @@ The MCP server is accessible at `http://localhost:30080`.
 To point the MCP server at real external backends instead of the in-cluster mocks:
 
 ```bash
-make kind-deploy THANOS_URL=https://your-cluster:9091 ALERTMANAGER_URL=https://your-cluster:9093 GRAFANA_URL=https://your-cluster:3000
+make kind-deploy THANOS_URL=https://your-cluster:9091 ALERTMANAGER_URL=https://your-cluster:9093 GRAFANA_URL=https://your-cluster:3000 TEMPO_URL=https://your-cluster:8080
 ```
 
 ### Cleanup

@@ -26,6 +26,7 @@ MONITORING_NAMESPACE ?= monitoring
 THANOS_URL ?=
 ALERTMANAGER_URL ?=
 GRAFANA_URL ?=
+TEMPO_URL ?=
 
 .PHONY: help build push deploy undeploy restart clean kind-create kind-backends kind-deploy kind-up kind-down
 
@@ -90,9 +91,10 @@ kind-deploy: ## Deploy the MCP server to Kind
 	$(CONTAINER_RUNTIME) build --platform=$(PLATFORM) -f Containerfile -t $(IMAGE) .
 	$(CONTAINER_RUNTIME) save $(IMAGE) | kind load image-archive /dev/stdin --name $(KIND_CLUSTER_NAME)
 	kustomize build deploy/overlays/kind | kubectl apply -n $(KIND_NAMESPACE) -f -
-	$(if $(THANOS_URL),kubectl set env deployment/rhoai-obs-mcp -n $(KIND_NAMESPACE) THANOS_URL=$(THANOS_URL),)
-	$(if $(ALERTMANAGER_URL),kubectl set env deployment/rhoai-obs-mcp -n $(KIND_NAMESPACE) ALERTMANAGER_URL=$(ALERTMANAGER_URL),)
-	$(if $(GRAFANA_URL),kubectl set env deployment/rhoai-obs-mcp -n $(KIND_NAMESPACE) GRAFANA_URL=$(GRAFANA_URL),)
+	$(if $(THANOS_URL),kubectl set env deployment/rhoai-obs-mcp -n $(KIND_NAMESPACE) "THANOS_URL=$(THANOS_URL)",)
+	$(if $(ALERTMANAGER_URL),kubectl set env deployment/rhoai-obs-mcp -n $(KIND_NAMESPACE) "ALERTMANAGER_URL=$(ALERTMANAGER_URL)",)
+	$(if $(GRAFANA_URL),kubectl set env deployment/rhoai-obs-mcp -n $(KIND_NAMESPACE) "GRAFANA_URL=$(GRAFANA_URL)",)
+	$(if $(TEMPO_URL),kubectl set env deployment/rhoai-obs-mcp -n $(KIND_NAMESPACE) "TEMPO_URL=$(TEMPO_URL)",)
 	@echo "MCP server deployed. Access at http://localhost:30080"
 
 kind-up: kind-create kind-backends kind-deploy ## Create Kind cluster with backends and deploy MCP server
