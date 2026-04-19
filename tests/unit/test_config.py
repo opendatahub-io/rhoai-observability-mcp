@@ -45,6 +45,16 @@ class TestLokiEnabled:
         assert settings.loki_enabled is False
 
 
+class TestTempoEnabled:
+    def test_tempo_enabled_when_url_set(self):
+        settings = Settings(_env_file=None, tempo_url="https://tempo.test:8080")
+        assert settings.tempo_enabled is True
+
+    def test_tempo_disabled_when_url_not_set(self):
+        settings = Settings(_env_file=None)
+        assert settings.tempo_enabled is False
+
+
 class TestInClusterAutoDetection:
     def test_auto_detection_applies_defaults_in_cluster(self):
         with patch("rhoai_obs_mcp.config._SA_TOKEN_PATH") as mock_path:

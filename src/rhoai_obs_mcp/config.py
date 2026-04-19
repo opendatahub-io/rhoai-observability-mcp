@@ -23,6 +23,7 @@ class Settings(BaseSettings):
     alertmanager_url: str | None = Field(default=None, description="Alertmanager URL")
     loki_url: str | None = Field(default=None, description="LokiStack gateway URL")
     grafana_url: str | None = Field(default=None, description="Grafana URL")
+    tempo_url: str | None = Field(default=None, description="Tempo gateway URL")
 
     # Auth
     openshift_token: str | None = Field(default=None, description="Bearer token override")
@@ -41,6 +42,11 @@ class Settings(BaseSettings):
     def loki_enabled(self) -> bool:
         """Whether Loki log queries are available."""
         return self.loki_url is not None
+
+    @property
+    def tempo_enabled(self) -> bool:
+        """Whether Tempo trace queries are available."""
+        return self.tempo_url is not None
 
     @model_validator(mode="after")
     def _apply_in_cluster_defaults(self) -> "Settings":

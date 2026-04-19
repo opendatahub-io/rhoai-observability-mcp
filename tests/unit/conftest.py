@@ -11,6 +11,7 @@ def settings():
         alertmanager_url="https://alertmanager.test:9093",
         loki_url="https://loki.test:8080",
         grafana_url="https://grafana.test:3000",
+        tempo_url="https://tempo.test:8080",
         openshift_token="test-token",
     )
 
