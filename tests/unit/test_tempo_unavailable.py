@@ -41,7 +41,7 @@ class TestTempoBackendAvailability:
 
     @pytest.mark.asyncio
     async def test_search_returns_error_when_unavailable(self, unavailable_tempo):
-        result = await unavailable_tempo.search('{ status = error }')
+        result = await unavailable_tempo.search("{ status = error }")
         assert result["status"] == "error"
         assert result["error"] == _TEMPO_NOT_CONFIGURED
 
@@ -62,7 +62,7 @@ class TestTraceToolsUnavailable:
     @pytest.mark.asyncio
     async def test_search_traces_returns_unavailable_message(self, unavailable_tempo):
         tools = register_trace_tools(unavailable_tempo)
-        result = await tools["search_traces"](query='{ status = error }')
+        result = await tools["search_traces"](query="{ status = error }")
         assert result == _TEMPO_UNAVAILABLE_MSG
 
     @pytest.mark.asyncio

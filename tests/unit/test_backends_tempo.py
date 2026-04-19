@@ -7,11 +7,7 @@ from rhoai_obs_mcp.backends.tempo import TempoBackend
 SAMPLE_TRACE_RESPONSE = {
     "batches": [
         {
-            "resource": {
-                "attributes": [
-                    {"key": "service.name", "value": {"stringValue": "vllm"}}
-                ]
-            },
+            "resource": {"attributes": [{"key": "service.name", "value": {"stringValue": "vllm"}}]},
             "scopeSpans": [
                 {
                     "spans": [
@@ -63,9 +59,9 @@ class TestTempoBackendGetTrace:
     @pytest.mark.asyncio
     async def test_get_trace(self, settings, auth):
         """Should fetch a trace by ID through the gateway."""
-        respx.get(
-            "https://tempo.test:8080/api/traces/v1/application/tempo/api/traces/abc123"
-        ).mock(return_value=httpx.Response(200, json=SAMPLE_TRACE_RESPONSE))
+        respx.get("https://tempo.test:8080/api/traces/v1/application/tempo/api/traces/abc123").mock(
+            return_value=httpx.Response(200, json=SAMPLE_TRACE_RESPONSE)
+        )
 
         backend = TempoBackend(settings, auth)
         result = await backend.get_trace("abc123", tenant="application")
@@ -99,9 +95,9 @@ class TestTempoBackendGetTrace:
     @pytest.mark.asyncio
     async def test_get_trace_connection_error(self, settings, auth):
         """Should return error dict on connection failure."""
-        respx.get(
-            "https://tempo.test:8080/api/traces/v1/application/tempo/api/traces/abc123"
-        ).mock(side_effect=httpx.ConnectError("Connection refused"))
+        respx.get("https://tempo.test:8080/api/traces/v1/application/tempo/api/traces/abc123").mock(
+            side_effect=httpx.ConnectError("Connection refused")
+        )
 
         backend = TempoBackend(settings, auth)
         result = await backend.get_trace("abc123")
@@ -113,9 +109,9 @@ class TestTempoBackendSearch:
     @pytest.mark.asyncio
     async def test_search(self, settings, auth):
         """Should execute a TraceQL search."""
-        respx.get(
-            "https://tempo.test:8080/api/traces/v1/application/tempo/api/search"
-        ).mock(return_value=httpx.Response(200, json=SAMPLE_SEARCH_RESPONSE))
+        respx.get("https://tempo.test:8080/api/traces/v1/application/tempo/api/search").mock(
+            return_value=httpx.Response(200, json=SAMPLE_SEARCH_RESPONSE)
+        )
 
         backend = TempoBackend(settings, auth)
         result = await backend.search('{ resource.service.name = "vllm" }')
@@ -132,7 +128,7 @@ class TestTempoBackendSearch:
 
         backend = TempoBackend(settings, auth)
         await backend.search(
-            '{ status = error }',
+            "{ status = error }",
             limit=10,
             start="1708000000",
             end="1708003600",

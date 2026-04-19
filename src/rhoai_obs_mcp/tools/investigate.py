@@ -5,6 +5,7 @@ from rhoai_obs_mcp.backends.alertmanager import AlertmanagerBackend
 from rhoai_obs_mcp.backends.loki import LokiBackend
 from rhoai_obs_mcp.backends.openshift import OpenShiftBackend
 from rhoai_obs_mcp.backends.prometheus import PrometheusBackend
+from rhoai_obs_mcp.backends.tempo import TempoBackend
 
 
 def register_investigation_tools(
@@ -12,6 +13,7 @@ def register_investigation_tools(
     alertmanager: AlertmanagerBackend,
     loki: LokiBackend,
     openshift: OpenShiftBackend,
+    tempo: TempoBackend,
 ) -> dict:
     """Create composite investigation tool functions."""
 
@@ -44,7 +46,7 @@ def register_investigation_tools(
         queue_query = f'vllm:num_requests_waiting{{model_name="{model_name}"}}'
         cache_query = f'vllm:gpu_cache_usage_perc{{model_name="{model_name}"}}'
 
-        ttft, tpot, e2e, queue, cache, error_logs, alerts = await asyncio.gather(
+        ttft, tpot, e2e, queue, cache, error_logs, alerts, traces = await asyncio.gather(
             prometheus.query(ttft_query),
             prometheus.query(tpot_query),
             prometheus.query(e2e_query),
@@ -56,6 +58,11 @@ def register_investigation_tools(
                 limit=20,
             ),
             alertmanager.get_alerts(),
+            tempo.search(
+                query=f'{{ resource.service.name = "{model_name}" && status = error }}',
+                tenant="application",
+                limit=5,
+            ),
             return_exceptions=True,
         )
 
@@ -108,6 +115,25 @@ def register_investigation_tools(
                 lines.append(f"- **{name}** ({severity}): {summary}")
         else:
             lines.append("No active alerts.")
+
+        # Traces section
+        lines.append("\n## Recent Error Traces\n")
+        if isinstance(traces, BaseException):
+            lines.append(f"Error fetching traces: {traces}")
+        elif isinstance(traces, dict) and traces.get("status") == "error":
+            lines.append(f"Traces not available: {traces.get('error', 'Unknown error')}")
+        elif isinstance(traces, dict):
+            trace_list = traces.get("traces", [])
+            if trace_list:
+                for t in trace_list[:5]:
+                    trace_id = t.get("traceID", "unknown")
+                    duration = t.get("durationMs", 0)
+                    root_name = t.get("rootTraceName", "unknown")
+                    lines.append(f"- `{trace_id[:16]}...` — {root_name} ({duration}ms)")
+            else:
+                lines.append("No error traces found in the time range.")
+        else:
+            lines.append("No error traces found.")
 
         return "\n".join(lines)
 

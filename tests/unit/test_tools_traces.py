@@ -6,11 +6,7 @@ from rhoai_obs_mcp.tools.traces import register_trace_tools
 SAMPLE_TRACE_RESPONSE = {
     "batches": [
         {
-            "resource": {
-                "attributes": [
-                    {"key": "service.name", "value": {"stringValue": "vllm"}}
-                ]
-            },
+            "resource": {"attributes": [{"key": "service.name", "value": {"stringValue": "vllm"}}]},
             "scopeSpans": [
                 {
                     "spans": [
@@ -77,7 +73,7 @@ class TestTraceTools:
     async def test_search_traces_formats_table(self):
         """Should render search results as markdown table."""
         self.tempo.search.return_value = SAMPLE_SEARCH_RESPONSE
-        result = await self.tools["search_traces"](query='{ status = error }')
+        result = await self.tools["search_traces"](query="{ status = error }")
         assert "vllm" in result
         assert "1500ms" in result
         assert "abc123def45678" in result
@@ -86,7 +82,7 @@ class TestTraceTools:
     async def test_search_traces_no_results(self):
         """Should handle empty search results."""
         self.tempo.search.return_value = {"traces": []}
-        result = await self.tools["search_traces"](query='{ status = error }')
+        result = await self.tools["search_traces"](query="{ status = error }")
         assert "No traces found" in result
 
     @pytest.mark.asyncio

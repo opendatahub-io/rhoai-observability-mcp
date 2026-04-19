@@ -8,6 +8,7 @@ from rhoai_obs_mcp.backends.grafana import GrafanaBackend
 from rhoai_obs_mcp.backends.loki import LokiBackend
 from rhoai_obs_mcp.backends.openshift import OpenShiftBackend
 from rhoai_obs_mcp.backends.prometheus import PrometheusBackend
+from rhoai_obs_mcp.backends.tempo import TempoBackend
 from rhoai_obs_mcp.config import Settings
 from rhoai_obs_mcp.tools.alerts import register_alert_tools
 from rhoai_obs_mcp.tools.cluster import register_cluster_tools
@@ -15,6 +16,7 @@ from rhoai_obs_mcp.tools.dashboards import register_dashboard_tools
 from rhoai_obs_mcp.tools.investigate import register_investigation_tools
 from rhoai_obs_mcp.tools.logs import register_log_tools
 from rhoai_obs_mcp.tools.metrics import register_metrics_tools
+from rhoai_obs_mcp.tools.traces import register_trace_tools
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +31,7 @@ def _log_backend_status(settings: Settings) -> None:
         ("Alertmanager", settings.alertmanager_url),
         ("Grafana", settings.grafana_url),
         ("Loki", settings.loki_url),
+        ("Tempo", settings.tempo_url),
     ]
     for name, url in backends:
         if url:
@@ -56,6 +59,7 @@ def create_server(
     loki = LokiBackend(settings, auth)
     grafana = GrafanaBackend(settings, auth)
     openshift = OpenShiftBackend(settings, auth)
+    tempo = TempoBackend(settings, auth)
 
     # Create FastMCP server
     mcp = FastMCP(
@@ -78,7 +82,8 @@ def create_server(
         register_log_tools(loki),
         register_cluster_tools(openshift),
         register_dashboard_tools(grafana),
-        register_investigation_tools(prometheus, alertmanager, loki, openshift),
+        register_trace_tools(tempo),
+        register_investigation_tools(prometheus, alertmanager, loki, openshift, tempo),
     ]
 
     for group in tool_groups:

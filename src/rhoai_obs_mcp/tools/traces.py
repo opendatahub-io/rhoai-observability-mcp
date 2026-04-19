@@ -23,8 +23,10 @@ def _format_trace(data: dict) -> str:
     lines = ["## Trace Spans\n"]
     for batch in batches:
         resource = batch.get("resource", {})
-        attrs = {a["key"]: a["value"].get("stringValue", a["value"].get("intValue", ""))
-                 for a in resource.get("attributes", [])}
+        attrs = {
+            a["key"]: a["value"].get("stringValue", a["value"].get("intValue", ""))
+            for a in resource.get("attributes", [])
+        }
         service = attrs.get("service.name", "unknown")
 
         for scope_span in batch.get("scopeSpans", []):
@@ -35,9 +37,7 @@ def _format_trace(data: dict) -> str:
                 duration_ms = (end_ns - start_ns) / 1_000_000 if end_ns > start_ns else 0
                 status_code = span.get("status", {}).get("code", 0)
                 status_str = {0: "UNSET", 1: "OK", 2: "ERROR"}.get(status_code, "UNKNOWN")
-                lines.append(
-                    f"- **{service}** / `{name}` — {duration_ms:.1f}ms [{status_str}]"
-                )
+                lines.append(f"- **{service}** / `{name}` — {duration_ms:.1f}ms [{status_str}]")
     return "\n".join(lines)
 
 
