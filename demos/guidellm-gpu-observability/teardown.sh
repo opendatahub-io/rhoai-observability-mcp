@@ -12,7 +12,7 @@ oc delete deployment/vllm service/vllm-server -n vllm-demo 2>/dev/null || true
 oc delete project vllm-demo 2>/dev/null || true
 
 echo "[INFO] Removing MCP server"
-oc delete -f "${REPO_ROOT}/deploy/" -n rhoai-obs-mcp 2>/dev/null || true
+oc delete -k "${REPO_ROOT}/deploy/overlays/openshift" -n rhoai-obs-mcp --ignore-not-found 2>/dev/null || true
 oc delete clusterrole rhoai-obs-mcp-monitoring-api 2>/dev/null || true
 oc delete project rhoai-obs-mcp 2>/dev/null || true
 

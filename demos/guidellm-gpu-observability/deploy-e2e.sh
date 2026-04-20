@@ -140,10 +140,11 @@ log "Inference test: $(echo "$COMPLETION" | python3 -c "import sys,json; print(j
 # -------------------------------------------------------------------
 log "Deploying Observability MCP in ${MCP_NS}"
 oc new-project "${MCP_NS}" 2>/dev/null || oc project "${MCP_NS}" >/dev/null
-oc apply -f "${REPO_ROOT}/deploy/" -n "${MCP_NS}"
 
-oc adm policy add-cluster-role-to-user cluster-monitoring-view \
-  -z rhoai-obs-mcp -n "${MCP_NS}" 2>/dev/null
+# Deploy using oc's built-in Kustomize support
+oc apply -k "${REPO_ROOT}/deploy/overlays/openshift" -n "${MCP_NS}"
+
+# Additional monitoring API RBAC (not in the overlay — needed for Alertmanager API on some clusters)
 oc apply -f "${SCRIPT_DIR}/monitoring-rbac.yaml"
 oc adm policy add-cluster-role-to-user rhoai-obs-mcp-monitoring-api \
   -z rhoai-obs-mcp -n "${MCP_NS}" 2>/dev/null
@@ -178,7 +179,7 @@ fi
 
 # Initialize + list tools + query GPU metrics
 curl -sk -b "$COOK" -X POST "https://${ROUTE_HOST}${MSG_PATH}" -H 'Content-Type: application/json' \
-  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-06-18","capabilities":{},"clientInfo":{"name":"e2e","version":"0.1"}}}' >/dev/null
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26","capabilities":{},"clientInfo":{"name":"e2e","version":"0.1"}}}' >/dev/null
 curl -sk -b "$COOK" -X POST "https://${ROUTE_HOST}${MSG_PATH}" -H 'Content-Type: application/json' \
   -d '{"jsonrpc":"2.0","method":"notifications/initialized","params":{}}' >/dev/null
 curl -sk -b "$COOK" -X POST "https://${ROUTE_HOST}${MSG_PATH}" -H 'Content-Type: application/json' \

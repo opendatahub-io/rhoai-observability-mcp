@@ -30,7 +30,8 @@ spec:
             - --profile=concurrent
             - --rate=1,2,4
             - --max-seconds=120
-            - --output-path=/results/benchmark-results.json
+            - --output-dir=/results
+            - --outputs=benchmark-results.json
           volumeMounts:
             - name: results
               mountPath: /results
