@@ -41,12 +41,32 @@ oc get pods -n nvidia-gpu-operator -l app=nvidia-dcgm-exporter
 
 ### 2. Deploy vLLM
 
+Enable user workload monitoring (required for Prometheus to scrape vLLM metrics). Skip if already enabled on your cluster:
+
+```bash
+oc apply -f - <<'EOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+EOF
+```
+
+Then deploy vLLM and the ServiceMonitor:
+
 ```bash
 oc new-project vllm-demo
 oc adm policy add-scc-to-user anyuid -z default -n vllm-demo
 oc apply -f demos/guidellm-gpu-observability/vllm-deployment.yaml
+oc apply -f demos/guidellm-gpu-observability/vllm-servicemonitor.yaml
 oc rollout status deployment/vllm -n vllm-demo --timeout=600s
 ```
+
+> **Note:** The `deploy-e2e.sh` script handles user workload monitoring enablement automatically, patching the existing config if one exists.
 
 ### 3. Validate vLLM
 
@@ -226,6 +246,7 @@ These were discovered during deployment and are already handled in the manifests
 | `vllm-deployment.yaml` | vLLM Deployment + Service (with gotcha fixes) |
 | `guidellm-job.yaml` | GuideLLM benchmark Job (concurrent profile, 3 rates) |
 | `monitoring-rbac.yaml` | ClusterRole for Prometheus/Alertmanager API access |
+| `vllm-servicemonitor.yaml` | ServiceMonitor to scrape vLLM metrics into Prometheus |
 
 ## Teardown
 

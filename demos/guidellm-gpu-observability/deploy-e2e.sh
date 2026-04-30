@@ -94,6 +94,35 @@ oc adm policy add-scc-to-user anyuid -z default -n "${VLLM_NS}" 2>/dev/null
 
 oc apply -f "${SCRIPT_DIR}/vllm-deployment.yaml"
 
+# Enable user workload monitoring so Prometheus can scrape vLLM metrics.
+# Patch existing config to preserve any other monitoring settings.
+if oc get configmap cluster-monitoring-config -n openshift-monitoring >/dev/null 2>&1; then
+  EXISTING=$(oc get configmap cluster-monitoring-config -n openshift-monitoring -o jsonpath='{.data.config\.yaml}' 2>/dev/null)
+  if echo "$EXISTING" | grep -q "enableUserWorkload"; then
+    log "User workload monitoring already configured"
+  else
+    log "Enabling user workload monitoring (patching existing cluster-monitoring-config)"
+    oc patch configmap cluster-monitoring-config -n openshift-monitoring \
+      --type merge -p '{"data":{"config.yaml":"enableUserWorkload: true\n'"$(echo "$EXISTING" | sed 's/"/\\"/g')"'"}}' 2>/dev/null \
+      || warn "Could not patch cluster-monitoring-config — user workload monitoring may need manual enablement"
+  fi
+else
+  log "Enabling user workload monitoring (creating cluster-monitoring-config)"
+  oc apply -f - <<'UWMEOF'
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+UWMEOF
+fi
+
+# Apply ServiceMonitor for vLLM metrics (TTFT, TPOT, queue depth, KV cache)
+oc apply -f "${SCRIPT_DIR}/vllm-servicemonitor.yaml"
+
 log "Waiting for vLLM rollout (image pull + model load, timeout ${VLLM_TIMEOUT}s)..."
 if ! oc rollout status deployment/vllm -n "${VLLM_NS}" --timeout="${VLLM_TIMEOUT}s"; then
   warn "vLLM not ready within ${VLLM_TIMEOUT}s. Pod status:"
