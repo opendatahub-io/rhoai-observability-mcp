@@ -24,7 +24,7 @@ FROM --platform=${BUILD_PLATFORM} registry.access.redhat.com/ubi9/python-312 AS 
 LABEL org.opencontainers.image.title="RHOAI Observability MCP Server"
 LABEL org.opencontainers.image.description="MCP server for Red Hat OpenShift AI observability and troubleshooting"
 LABEL org.opencontainers.image.licenses="MIT"
-LABEL org.opencontainers.image.source="https://github.com/amito/rhoai-observability-mcp"
+LABEL org.opencontainers.image.source="https://github.com/opendatahub-io/rhoai-observability-mcp"
 
 WORKDIR /opt/app-root/src
 
