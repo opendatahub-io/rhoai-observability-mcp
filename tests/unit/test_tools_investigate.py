@@ -47,6 +47,8 @@ class TestInvestigationTools:
         # Should include sections for metrics, logs, alerts
         assert "Latency" in result or "latency" in result
         assert "abc123def456" in result
+        # Should include preempted metric
+        assert "Requests Preempted" in result
 
     @pytest.mark.asyncio
     async def test_investigate_gpu(self):
@@ -68,6 +70,8 @@ class TestInvestigationTools:
 
         result = await self.tools["investigate_gpu"](time_range="15m")
         assert "GPU" in result or "gpu" in result
+        # Should include preempted metric
+        assert "Requests Preempted" in result
 
     @pytest.mark.asyncio
     async def test_investigate_errors(self):

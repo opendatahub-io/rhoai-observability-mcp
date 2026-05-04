@@ -54,6 +54,11 @@ gpu_util = Gauge(
     "GPU utilization percentage",
     ["gpu", "modelName"],
 )
+requests_preempted = Gauge(
+    "vllm:num_requests_preempted",
+    "Number of requests preempted",
+    ["model_name"],
+)
 
 # --- Counters ---
 gen_tokens = Counter(
@@ -85,6 +90,9 @@ def generate_samples():
     )
     gpu_util.labels(gpu="0", modelName=MODEL_NAME).set(
         67 + 28 * math.sin(phase * 0.5) + random.uniform(-5, 5)
+    )
+    requests_preempted.labels(model_name=MODEL_NAME).set(
+        max(0, int(2 * math.sin(phase * 0.3) + random.randint(0, 1)))
     )
 
     # Counter: increment generation tokens
