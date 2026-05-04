@@ -37,6 +37,30 @@ class TestMetricsTools:
         assert "llama" in result or "0.42" in result
 
     @pytest.mark.asyncio
+    async def test_get_vllm_metrics_includes_preempted_by_default(self):
+        """Should include preempted metric in the default metric set."""
+        self.prometheus.query.return_value = {
+            "status": "success",
+            "data": {"result": [{"metric": {}, "value": [1, "3"]}]},
+        }
+
+        result = await self.tools["get_vllm_metrics"](model_name="llama")
+        assert "Requests Preempted" in result
+
+    @pytest.mark.asyncio
+    async def test_get_vllm_metrics_preempted_uses_gauge_query(self):
+        """Should query preempted as a raw gauge, not wrapped in rate()."""
+        self.prometheus.query.return_value = {
+            "status": "success",
+            "data": {"result": [{"metric": {}, "value": [1, "5"]}]},
+        }
+
+        await self.tools["get_vllm_metrics"](model_name="llama", metrics="preempted")
+        self.prometheus.query.assert_called_once_with(
+            'vllm:num_requests_preempted{model_name="llama"}'
+        )
+
+    @pytest.mark.asyncio
     async def test_list_metrics(self):
         """Should list and optionally filter metrics."""
         self.prometheus.list_metrics.return_value = [

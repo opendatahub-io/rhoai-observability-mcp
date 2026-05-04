@@ -20,6 +20,7 @@ data:
     requests_waiting = Gauge("vllm:num_requests_waiting", "Waiting requests", ["model_name"])
     requests_running = Gauge("vllm:num_requests_running", "Running requests", ["model_name"])
     gpu_util = Gauge("DCGM_FI_DEV_GPU_UTIL", "GPU utilization", ["gpu", "modelName"])
+    requests_preempted = Gauge("vllm:num_requests_preempted", "Preempted requests", ["model_name"])
     gen_tokens = Counter("vllm:generation_tokens_total", "Total generation tokens", ["model_name"])
 
     def generate_samples():
@@ -36,6 +37,8 @@ data:
             max(1, int(4 + 3 * math.sin(phase * 1.3) + random.randint(-1, 1))))
         gpu_util.labels(gpu="0", modelName=MODEL_NAME).set(
             67 + 28 * math.sin(phase * 0.5) + random.uniform(-5, 5))
+        requests_preempted.labels(model_name=MODEL_NAME).set(
+            max(0, int(2 * math.sin(phase * 0.3) + random.randint(0, 1))))
         gen_tokens.labels(model_name=MODEL_NAME).inc(random.randint(50, 200))
 
     if __name__ == "__main__":

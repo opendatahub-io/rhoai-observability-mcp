@@ -34,6 +34,7 @@ VLLM_METRICS = {
     "throughput": ("vllm:generation_tokens_total", "Generation Throughput (tokens/sec)"),
     "queue": ("vllm:num_requests_waiting", "Requests Waiting in Queue"),
     "running": ("vllm:num_requests_running", "Requests Currently Running"),
+    "preempted": ("vllm:num_requests_preempted", "Requests Preempted"),
 }
 
 
@@ -52,13 +53,13 @@ def register_metrics_tools(prometheus: PrometheusBackend) -> dict:
 
     async def get_vllm_metrics(
         model_name: str,
-        metrics: str = "ttft,tpot,e2e,cache,queue,running",
+        metrics: str = "ttft,tpot,e2e,cache,queue,running,preempted",
     ) -> str:
         """Get a summary of key vLLM metrics for a specific model.
 
         Args:
             model_name: The model name label in vLLM metrics
-            metrics: Comma-separated list of: ttft, tpot, e2e, cache, throughput, queue, running
+            metrics: Comma-separated list of: ttft, tpot, e2e, cache, throughput, queue, running, preempted
         """
         requested = [m.strip() for m in metrics.split(",")]
         lines = [f"## vLLM Metrics for model: {model_name}\n"]
@@ -73,7 +74,7 @@ def register_metrics_tools(prometheus: PrometheusBackend) -> dict:
             # For rate-based metrics, wrap in rate()
             if key == "throughput":
                 promql = f'rate({metric_name}{{model_name="{model_name}"}}[5m])'
-            elif key in ("cache", "queue", "running"):
+            elif key in ("cache", "queue", "running", "preempted"):
                 promql = f'{metric_name}{{model_name="{model_name}"}}'
             else:
                 # Histograms: get p50, p95, p99

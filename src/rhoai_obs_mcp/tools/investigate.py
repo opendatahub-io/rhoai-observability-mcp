@@ -48,13 +48,15 @@ def register_investigation_tools(
         )
         queue_query = f'vllm:num_requests_waiting{{model_name="{safe_name}"}}'
         cache_query = f'vllm:kv_cache_usage_perc{{model_name="{safe_name}"}}'
+        preempted_query = f'vllm:num_requests_preempted{{model_name="{safe_name}"}}'
 
-        ttft, tpot, e2e, queue, cache, error_logs, alerts, traces = await asyncio.gather(
+        ttft, tpot, e2e, queue, cache, preempted, error_logs, alerts, traces = await asyncio.gather(
             prometheus.query(ttft_query),
             prometheus.query(tpot_query),
             prometheus.query(e2e_query),
             prometheus.query(queue_query),
             prometheus.query(cache_query),
+            prometheus.query(preempted_query),
             loki.query_range(
                 f'{{kubernetes_namespace_name=~".*"}} |= "error" |= "{safe_name}"',
                 tenant="application",
@@ -79,6 +81,7 @@ def register_investigation_tools(
             ("E2E Latency", e2e),
             ("Queue Depth", queue),
             ("KV Cache Usage", cache),
+            ("Requests Preempted", preempted),
         ]
         for name, result in metric_results:
             if isinstance(result, BaseException):
@@ -153,13 +156,15 @@ def register_investigation_tools(
         cache_query = "vllm:kv_cache_usage_perc"
         running_query = "vllm:num_requests_running"
         waiting_query = "vllm:num_requests_waiting"
+        preempted_query = "vllm:num_requests_preempted"
 
-        gpu_util, gpu_mem, cache, running, waiting, alerts = await asyncio.gather(
+        gpu_util, gpu_mem, cache, running, waiting, preempted, alerts = await asyncio.gather(
             prometheus.query(gpu_util_query),
             prometheus.query(gpu_mem_query),
             prometheus.query(cache_query),
             prometheus.query(running_query),
             prometheus.query(waiting_query),
+            prometheus.query(preempted_query),
             alertmanager.get_alerts(),
             return_exceptions=True,
         )
@@ -173,6 +178,7 @@ def register_investigation_tools(
             ("KV Cache Usage", cache),
             ("Requests Running", running),
             ("Requests Waiting", waiting),
+            ("Requests Preempted", preempted),
         ]
         for name, result in gpu_results:
             if isinstance(result, BaseException):
