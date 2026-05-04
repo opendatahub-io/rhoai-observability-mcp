@@ -38,7 +38,7 @@ def register_investigation_tools(
         )
         tpot_query = (
             "histogram_quantile(0.95, rate("
-            f'vllm:time_per_output_token_seconds_bucket{{model_name="{safe_name}"}}'
+            f'vllm:request_time_per_output_token_seconds_bucket{{model_name="{safe_name}"}}'
             f"[{time_range}]))"
         )
         e2e_query = (
@@ -47,7 +47,7 @@ def register_investigation_tools(
             f"[{time_range}]))"
         )
         queue_query = f'vllm:num_requests_waiting{{model_name="{safe_name}"}}'
-        cache_query = f'vllm:gpu_cache_usage_perc{{model_name="{safe_name}"}}'
+        cache_query = f'vllm:kv_cache_usage_perc{{model_name="{safe_name}"}}'
 
         ttft, tpot, e2e, queue, cache, error_logs, alerts, traces = await asyncio.gather(
             prometheus.query(ttft_query),
@@ -150,7 +150,7 @@ def register_investigation_tools(
         """
         gpu_util_query = "DCGM_FI_DEV_GPU_UTIL"
         gpu_mem_query = "DCGM_FI_DEV_FB_USED"
-        cache_query = "vllm:gpu_cache_usage_perc"
+        cache_query = "vllm:kv_cache_usage_perc"
         running_query = "vllm:num_requests_running"
         waiting_query = "vllm:num_requests_waiting"
 

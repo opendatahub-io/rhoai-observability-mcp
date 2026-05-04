@@ -68,7 +68,7 @@ class TestPrometheusBackend:
                 200,
                 json={
                     "status": "success",
-                    "data": ["vllm:num_requests_running", "vllm:gpu_cache_usage_perc", "up"],
+                    "data": ["vllm:num_requests_running", "vllm:kv_cache_usage_perc", "up"],
                 },
             )
         )

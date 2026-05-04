@@ -85,7 +85,7 @@ jobs:
           sleep 3
 
           for i in $(seq 1 12); do
-            RESULT=$(curl -sf 'http://localhost:9090/api/v1/query?query=vllm:gpu_cache_usage_perc' 2>/dev/null)
+            RESULT=$(curl -sf 'http://localhost:9090/api/v1/query?query=vllm:kv_cache_usage_perc' 2>/dev/null)
             if echo "$RESULT" | grep -q '"model_name"'; then
               echo "Prometheus is scraping fake exporter metrics"
               kill $PF_PID 2>/dev/null || true

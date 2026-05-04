@@ -28,9 +28,9 @@ def _relative_to_epoch(val: str, now: float | None = None) -> str:
 # Key vLLM metrics with human-readable descriptions
 VLLM_METRICS = {
     "ttft": ("vllm:time_to_first_token_seconds", "Time to First Token (TTFT)"),
-    "tpot": ("vllm:time_per_output_token_seconds", "Time Per Output Token (TPOT)"),
+    "tpot": ("vllm:request_time_per_output_token_seconds", "Time Per Output Token (TPOT)"),
     "e2e": ("vllm:e2e_request_latency_seconds", "End-to-End Latency"),
-    "cache": ("vllm:gpu_cache_usage_perc", "GPU KV Cache Usage"),
+    "cache": ("vllm:kv_cache_usage_perc", "GPU KV Cache Usage"),
     "throughput": ("vllm:generation_tokens_total", "Generation Throughput (tokens/sec)"),
     "queue": ("vllm:num_requests_waiting", "Requests Waiting in Queue"),
     "running": ("vllm:num_requests_running", "Requests Currently Running"),

@@ -41,7 +41,7 @@ class TestMetricsTools:
         """Should list and optionally filter metrics."""
         self.prometheus.list_metrics.return_value = [
             "vllm:num_requests_running",
-            "vllm:gpu_cache_usage_perc",
+            "vllm:kv_cache_usage_perc",
             "node_cpu_seconds_total",
         ]
 

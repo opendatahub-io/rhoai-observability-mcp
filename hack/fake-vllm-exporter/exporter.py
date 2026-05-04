@@ -21,7 +21,7 @@ ttft = Histogram(
     buckets=(0.01, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0),
 )
 tpot = Histogram(
-    "vllm:time_per_output_token_seconds",
+    "vllm:request_time_per_output_token_seconds",
     "Time per output token in seconds",
     ["model_name"],
     buckets=(0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.075, 0.1),
@@ -35,7 +35,7 @@ e2e = Histogram(
 
 # --- Gauges ---
 cache_usage = Gauge(
-    "vllm:gpu_cache_usage_perc",
+    "vllm:kv_cache_usage_perc",
     "GPU KV cache usage percentage",
     ["model_name"],
 )

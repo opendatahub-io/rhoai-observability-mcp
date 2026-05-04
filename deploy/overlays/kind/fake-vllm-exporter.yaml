@@ -12,11 +12,11 @@ data:
 
     ttft = Histogram("vllm:time_to_first_token_seconds", "TTFT", ["model_name"],
         buckets=(0.01, 0.025, 0.05, 0.075, 0.1, 0.15, 0.2, 0.3, 0.5, 1.0))
-    tpot = Histogram("vllm:time_per_output_token_seconds", "TPOT", ["model_name"],
+    tpot = Histogram("vllm:request_time_per_output_token_seconds", "TPOT", ["model_name"],
         buckets=(0.005, 0.01, 0.015, 0.02, 0.03, 0.04, 0.05, 0.075, 0.1))
     e2e = Histogram("vllm:e2e_request_latency_seconds", "E2E latency", ["model_name"],
         buckets=(0.05, 0.1, 0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0, 5.0))
-    cache_usage = Gauge("vllm:gpu_cache_usage_perc", "KV cache usage", ["model_name"])
+    cache_usage = Gauge("vllm:kv_cache_usage_perc", "KV cache usage", ["model_name"])
     requests_waiting = Gauge("vllm:num_requests_waiting", "Waiting requests", ["model_name"])
     requests_running = Gauge("vllm:num_requests_running", "Running requests", ["model_name"])
     gpu_util = Gauge("DCGM_FI_DEV_GPU_UTIL", "GPU utilization", ["gpu", "modelName"])
